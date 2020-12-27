@@ -14,91 +14,25 @@ namespace FBTool.Forms
         public About()
         {
             InitializeComponent();
-            this.Text = String.Format("About {0}", AssemblyTitle);
-            this.labelProductName.Text = AssemblyProduct;
-            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
-            this.textBoxDescription.Text = AssemblyDescription;
+            this.Text = String.Format("About {0}", "FB Tool");
+            this.labelProductName.Text = "FB Tool";
+            this.labelVersion.Text = String.Format("Version: {0}", "v1.0");
+            this.textBoxDescription.Text = "Công cụ.";
         }
 
-        #region Assembly Attribute Accessors
-
-        public string AssemblyTitle
+        public void SetActivationState(bool isActivated = false, string expried = "")
         {
-            get
+            if (isActivated)
             {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
-                if (attributes.Length > 0)
-                {
-                    AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributes[0];
-                    if (titleAttribute.Title != "")
-                    {
-                        return titleAttribute.Title;
-                    }
-                }
-                return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+                this.labelActivated.Text = String.Format("Trạng thái: {0}", "Đã kích hoạt");
             }
-        }
-
-        public string AssemblyVersion
-        {
-            get
+            else
             {
-                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                this.labelActivated.Text = String.Format("Trạng thái: {0}", "Chưa kích hoạt");
             }
+            
+            this.labelExpried.Text = String.Format("{0}", expried);
         }
-
-        public string AssemblyDescription
-        {
-            get
-            {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false);
-                if (attributes.Length == 0)
-                {
-                    return "";
-                }
-                return ((AssemblyDescriptionAttribute)attributes[0]).Description;
-            }
-        }
-
-        public string AssemblyProduct
-        {
-            get
-            {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyProductAttribute), false);
-                if (attributes.Length == 0)
-                {
-                    return "";
-                }
-                return ((AssemblyProductAttribute)attributes[0]).Product;
-            }
-        }
-
-        public string AssemblyCopyright
-        {
-            get
-            {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
-                if (attributes.Length == 0)
-                {
-                    return "";
-                }
-                return ((AssemblyCopyrightAttribute)attributes[0]).Copyright;
-            }
-        }
-
-        public string AssemblyCompany
-        {
-            get
-            {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyCompanyAttribute), false);
-                if (attributes.Length == 0)
-                {
-                    return "";
-                }
-                return ((AssemblyCompanyAttribute)attributes[0]).Company;
-            }
-        }
-        #endregion
 
         private void okButton_Click(object sender, EventArgs e)
         {

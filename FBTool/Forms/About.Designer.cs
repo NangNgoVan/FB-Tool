@@ -34,8 +34,8 @@
             this.labelVersion = new System.Windows.Forms.Label();
             this.textBoxDescription = new System.Windows.Forms.TextBox();
             this.okButton = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.labelActivated = new System.Windows.Forms.Label();
+            this.labelExpried = new System.Windows.Forms.Label();
             this.tableLayoutPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
             this.SuspendLayout();
@@ -50,8 +50,8 @@
             this.tableLayoutPanel.Controls.Add(this.labelVersion, 1, 1);
             this.tableLayoutPanel.Controls.Add(this.textBoxDescription, 1, 4);
             this.tableLayoutPanel.Controls.Add(this.okButton, 1, 5);
-            this.tableLayoutPanel.Controls.Add(this.label1, 1, 2);
-            this.tableLayoutPanel.Controls.Add(this.label2, 1, 3);
+            this.tableLayoutPanel.Controls.Add(this.labelActivated, 1, 2);
+            this.tableLayoutPanel.Controls.Add(this.labelExpried, 1, 3);
             this.tableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel.Location = new System.Drawing.Point(9, 10);
             this.tableLayoutPanel.Name = "tableLayoutPanel";
@@ -125,27 +125,27 @@
             this.okButton.Text = "&OK";
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
             // 
-            // label1
+            // labelActivated
             // 
-            this.label1.AutoSize = true;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label1.Location = new System.Drawing.Point(143, 56);
-            this.label1.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(271, 28);
-            this.label1.TabIndex = 25;
-            this.label1.Text = "Trạng thái: Đã kích hoạt";
+            this.labelActivated.AutoSize = true;
+            this.labelActivated.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelActivated.Location = new System.Drawing.Point(143, 56);
+            this.labelActivated.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelActivated.Name = "labelActivated";
+            this.labelActivated.Size = new System.Drawing.Size(271, 28);
+            this.labelActivated.TabIndex = 25;
+            this.labelActivated.Text = "Trạng thái: Đã kích hoạt";
             // 
-            // label2
+            // labelExpried
             // 
-            this.label2.AutoSize = true;
-            this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label2.Location = new System.Drawing.Point(143, 84);
-            this.label2.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(271, 28);
-            this.label2.TabIndex = 26;
-            this.label2.Text = "Ngày hết hạn: 1/1/2021";
+            this.labelExpried.AutoSize = true;
+            this.labelExpried.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelExpried.Location = new System.Drawing.Point(143, 84);
+            this.labelExpried.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelExpried.Name = "labelExpried";
+            this.labelExpried.Size = new System.Drawing.Size(271, 28);
+            this.labelExpried.TabIndex = 26;
+            this.labelExpried.Text = "Ngày hết hạn: 1/1/2021";
             // 
             // About
             // 
@@ -178,7 +178,7 @@
         private System.Windows.Forms.Label labelVersion;
         private System.Windows.Forms.TextBox textBoxDescription;
         private System.Windows.Forms.Button okButton;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelActivated;
+        private System.Windows.Forms.Label labelExpried;
     }
 }

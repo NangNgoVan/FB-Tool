@@ -40,6 +40,8 @@
             this.activeKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.expriedTimeStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.fbAccountsGridView = new System.Windows.Forms.DataGridView();
@@ -47,9 +49,6 @@
             this.importToolStripDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.importUserPassMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.importFBAccountStripBtn = new System.Windows.Forms.ToolStripButton();
-            this.proxyListStripBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.loginFBWithUsernameBtn = new System.Windows.Forms.ToolStripButton();
             this.loginFBWithCookieBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -60,14 +59,20 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.showLogStripBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.logViewer = new System.Windows.Forms.TextBox();
+            this.importUIDCookieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fbAccountsGridView)).BeginInit();
             this.toolStrip2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -152,15 +157,33 @@
             this.expriedTimeStripStatusLabel.Size = new System.Drawing.Size(101, 17);
             this.expriedTimeStripStatusLabel.Text = "Hết hạn: 1/1/2021";
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 24);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.logViewer);
+            this.splitContainer1.Size = new System.Drawing.Size(665, 311);
+            this.splitContainer1.SplitterDistance = 220;
+            this.splitContainer1.TabIndex = 2;
+            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 24);
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(665, 311);
-            this.tabControl1.TabIndex = 3;
+            this.tabControl1.Size = new System.Drawing.Size(665, 220);
+            this.tabControl1.TabIndex = 4;
             // 
             // tabPage1
             // 
@@ -169,7 +192,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 23);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(657, 284);
+            this.tabPage1.Size = new System.Drawing.Size(657, 193);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Quản lý Cookie";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -182,7 +205,7 @@
             this.fbAccountsGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fbAccountsGridView.Location = new System.Drawing.Point(3, 28);
             this.fbAccountsGridView.Name = "fbAccountsGridView";
-            this.fbAccountsGridView.Size = new System.Drawing.Size(651, 253);
+            this.fbAccountsGridView.Size = new System.Drawing.Size(651, 162);
             this.fbAccountsGridView.TabIndex = 4;
             this.fbAccountsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.fbAccountsGridView_CellClick);
             this.fbAccountsGridView.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.fbAccountsGridView_CellMouseUp);
@@ -193,9 +216,6 @@
             this.toolStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importToolStripDropDownButton,
             this.toolStripSeparator1,
-            this.importFBAccountStripBtn,
-            this.proxyListStripBtn,
-            this.toolStripSeparator5,
             this.loginFBWithUsernameBtn,
             this.loginFBWithCookieBtn,
             this.toolStripSeparator2,
@@ -216,7 +236,9 @@
             // 
             this.importToolStripDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.importToolStripDropDownButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importUserPassMessageToolStripMenuItem});
+            this.importUserPassMessageToolStripMenuItem,
+            this.importUIDCookieToolStripMenuItem,
+            this.importToolStripMenuItem});
             this.importToolStripDropDownButton.Image = ((System.Drawing.Image)(resources.GetObject("importToolStripDropDownButton.Image")));
             this.importToolStripDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.importToolStripDropDownButton.Name = "importToolStripDropDownButton";
@@ -226,37 +248,14 @@
             // importUserPassMessageToolStripMenuItem
             // 
             this.importUserPassMessageToolStripMenuItem.Name = "importUserPassMessageToolStripMenuItem";
-            this.importUserPassMessageToolStripMenuItem.Size = new System.Drawing.Size(257, 22);
-            this.importUserPassMessageToolStripMenuItem.Text = "Import dạng {user|pass|message}...";
+            this.importUserPassMessageToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
+            this.importUserPassMessageToolStripMenuItem.Text = "Import dạng {user|pass|message}";
             this.importUserPassMessageToolStripMenuItem.Click += new System.EventHandler(this.importUserPassMessageToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
-            // importFBAccountStripBtn
-            // 
-            this.importFBAccountStripBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.importFBAccountStripBtn.Image = ((System.Drawing.Image)(resources.GetObject("importFBAccountStripBtn.Image")));
-            this.importFBAccountStripBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.importFBAccountStripBtn.Name = "importFBAccountStripBtn";
-            this.importFBAccountStripBtn.Size = new System.Drawing.Size(23, 22);
-            this.importFBAccountStripBtn.Text = "Thêm hàng...";
-            // 
-            // proxyListStripBtn
-            // 
-            this.proxyListStripBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.proxyListStripBtn.Image = ((System.Drawing.Image)(resources.GetObject("proxyListStripBtn.Image")));
-            this.proxyListStripBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.proxyListStripBtn.Name = "proxyListStripBtn";
-            this.proxyListStripBtn.Size = new System.Drawing.Size(23, 22);
-            this.proxyListStripBtn.Text = "Thêm danh sách proxy...";
-            // 
-            // toolStripSeparator5
-            // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(6, 25);
             // 
             // loginFBWithUsernameBtn
             // 
@@ -327,8 +326,8 @@
             this.showLogStripBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.showLogStripBtn.Name = "showLogStripBtn";
             this.showLogStripBtn.Size = new System.Drawing.Size(23, 22);
-            this.showLogStripBtn.Text = "toolStripButton3";
-            this.showLogStripBtn.ToolTipText = "Hiển thị bảng log";
+            this.showLogStripBtn.Text = "Ẩn/hiện bảng log";
+            this.showLogStripBtn.ToolTipText = "Ẩn/hiện bảng log";
             this.showLogStripBtn.Click += new System.EventHandler(this.showLogStripBtn_Click);
             // 
             // toolStripSeparator4
@@ -336,12 +335,36 @@
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
             // 
+            // logViewer
+            // 
+            this.logViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.logViewer.Location = new System.Drawing.Point(0, 0);
+            this.logViewer.Multiline = true;
+            this.logViewer.Name = "logViewer";
+            this.logViewer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.logViewer.Size = new System.Drawing.Size(665, 87);
+            this.logViewer.TabIndex = 0;
+            // 
+            // importUIDCookieToolStripMenuItem
+            // 
+            this.importUIDCookieToolStripMenuItem.Name = "importUIDCookieToolStripMenuItem";
+            this.importUIDCookieToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
+            this.importUIDCookieToolStripMenuItem.Text = "Import dạng {uid|cookie}";
+            this.importUIDCookieToolStripMenuItem.Click += new System.EventHandler(this.importUIDCookieToolStripMenuItem_Click);
+            // 
+            // importToolStripMenuItem
+            // 
+            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
+            this.importToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
+            this.importToolStripMenuItem.Text = "Import toàn bộ";
+            this.importToolStripMenuItem.Click += new System.EventHandler(this.importToolStripMenuItem_Click);
+            // 
             // FBTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(665, 357);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -353,13 +376,18 @@
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fbAccountsGridView)).EndInit();
             this.toolStrip2.ResumeLayout(false);
             this.toolStrip2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -375,28 +403,29 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripMenuItem configToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.ToolStrip toolStrip2;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem activeKeyToolStripMenuItem;
         private System.Windows.Forms.ToolStripStatusLabel expriedTimeStripStatusLabel;
-        private System.Windows.Forms.ToolStripButton importFBAccountStripBtn;
+        private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.DataGridView fbAccountsGridView;
+        private System.Windows.Forms.ToolStrip toolStrip2;
+        private System.Windows.Forms.ToolStripDropDownButton importToolStripDropDownButton;
+        private System.Windows.Forms.ToolStripMenuItem importUserPassMessageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton loginFBWithUsernameBtn;
+        private System.Windows.Forms.ToolStripButton loginFBWithCookieBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripComboBox filterResult;
-        private System.Windows.Forms.DataGridView fbAccountsGridView;
-        private System.Windows.Forms.ToolStripButton proxyListStripBtn;
+        private System.Windows.Forms.ToolStripButton clearFbAccountGripViewToolStripButton;
+        private System.Windows.Forms.ToolStripButton saveDataTableStripBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton showLogStripBtn;
-        private System.Windows.Forms.ToolStripButton saveDataTableStripBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripDropDownButton importToolStripDropDownButton;
-        private System.Windows.Forms.ToolStripMenuItem importUserPassMessageToolStripMenuItem;
-        private System.Windows.Forms.ToolStripButton clearFbAccountGripViewToolStripButton;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.ToolStripButton loginFBWithUsernameBtn;
-        private System.Windows.Forms.ToolStripButton loginFBWithCookieBtn;
-        private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.TextBox logViewer;
+        private System.Windows.Forms.ToolStripMenuItem importUIDCookieToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importToolStripMenuItem;
     }
 }

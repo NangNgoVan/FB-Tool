@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,15 @@ namespace FBTool.Forms
         public AutoFBLoginConfig()
         {
             InitializeComponent();
-            helpPage.DocumentText = "This is help page.";
+            try
+            {
+                string helpPageDirPath = String.Format(@"{0}\help.html", Application.StartupPath);
+                helpPage.DocumentText = File.ReadAllText(helpPageDirPath);
+            }
+            catch (Exception e)
+            {
+                helpPage.DocumentText = "Không tìm thấy đường dẫn.";
+            }
 
             maxFBBrowserNum.Value = 5;
             timeFbLoginDelay.Value = 5;

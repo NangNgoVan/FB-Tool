@@ -47,7 +47,7 @@ namespace FBTool.Forms
         public void SetExpriedDate(DateTime? expriedDate)
         {
             string expriedStr = "Invalid!";
-            if (expriedDate.HasValue) expriedStr = $"Expried: {expriedDate.Value.ToShortDateString()} {expriedDate.Value.ToShortTimeString()}";
+            if (expriedDate.HasValue) expriedStr = $"Ngày hết hạn: {expriedDate.Value.ToShortDateString()} {expriedDate.Value.ToShortTimeString()}";
             expriedTimeStripStatusLabel.Text = expriedStr;
         }
 
@@ -142,7 +142,12 @@ namespace FBTool.Forms
             getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {uid|cookie}");
             getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {user|pass|status}");
         }
-
+        private void WriteLog(string message)
+        {
+            string currentTime = DateTime.Now.ToString();
+            string logMsg = $"[{currentTime}] {message}\n";
+            logViewer.AppendText(logMsg);
+        }
         private void FBTool_Load(object sender, EventArgs e)
         {
 
@@ -156,6 +161,7 @@ namespace FBTool.Forms
         private void infoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             About aboutBox = new About();
+            aboutBox.SetActivationState(true, expriedTimeStripStatusLabel.Text);
             aboutBox.Show();
         }
 
@@ -333,6 +339,7 @@ namespace FBTool.Forms
                     //set proxy
                     int proxyIndex = 0;
                     int proxyNum = evt.Proxies.Count;
+                    WriteLog("Set địa chỉ proxy (nếu có).");
                     foreach (DataGridViewRow row in selectedRows)
                     {
                         if (evt.UseProxy)
@@ -344,6 +351,9 @@ namespace FBTool.Forms
                     }
 
                     Func<object, int, FBLoginResultModel, FBLoginResultModel> handler = null;
+
+                    WriteLog("Đang tiến hành thu thập cookie...");
+
                     for (int i = 0; i < maxWindowNum; i++)
                     {
                         currentWindowNum += 1;
@@ -376,6 +386,7 @@ namespace FBTool.Forms
                         }
 
                         row.Cells[4].Value = "Đang lấy cookie ...";
+                        WriteLog($"Đang lấy cookie tài khoản: {username}");
                         //
                         Task<FBLoginResultModel> loginTask = browser.FBLoginAndGetCookie(i, username, pass, handler = (obj, id, cookie) =>
                         {
@@ -400,9 +411,13 @@ namespace FBTool.Forms
                                 browser1.Show();
 
                                 selectedRows[currentWindowNum - 1].Cells[4].Value = "Đang lấy cookie ...";
+
                                 string username1 = selectedRows[currentWindowNum - 1].Cells[0].Value?.ToString();
                                 string pass1 = selectedRows[currentWindowNum - 1].Cells[1].Value?.ToString();
-                                Debug.WriteLine(username1 + " " + pass1);
+
+                                //Debug.WriteLine(username1 + " " + pass1);
+                                WriteLog($"Đang lấy cookie tài khoản: {username1}");
+
                                 Task<FBLoginResultModel> loginTask1 = browser1.FBLoginAndGetCookie(currentWindowNum - 1, username1, pass1, handler);
                                 loginTasks.Add(loginTask1);
                             }
@@ -413,6 +428,7 @@ namespace FBTool.Forms
                         loginTasks.Add(loginTask);
                     }
                     await Task.WhenAll(loginTasks);
+                    WriteLog("Đã lấy xong cookie.");
                     loginProcessIsRunning = false;
                 }
             };
@@ -422,12 +438,14 @@ namespace FBTool.Forms
         private void resetIPProcess()
         {
             // reset network
-            Debug.WriteLine("Reset network started...");
+            //Debug.WriteLine("Reset network started...");
+            WriteLog("Đang reset địa chỉ IP...");
             Process releaseIpProcess = Process.Start("ipconfig", "/release");
             releaseIpProcess.WaitForExit();
             Process renewIpProcess = Process.Start("ipconfig", "/renew");
             renewIpProcess.WaitForExit();
-            Debug.WriteLine("Reset network done!");
+            //Debug.WriteLine("Đã reset địa chỉ IP xong.");
+            WriteLog("Đã reset địa chỉ IP xong.");
             //
         }
         private async void onLoginFbWithCookie(object sender, EventArgs e)
@@ -451,6 +469,7 @@ namespace FBTool.Forms
                     {//set proxy
                         int proxyIndex = 0;
                         int proxyNum = evt.Proxies.Count;
+                        WriteLog("Set địa chỉ proxy (nếu có).");
                         foreach (DataGridViewRow row in selectedRows)
                         {
 
@@ -465,7 +484,12 @@ namespace FBTool.Forms
                         {
                             BrowserFBWindow browser = new BrowserFBWindow(true);
                             browser.Show();
+                            WriteLog($"Đăng nhập bằng cookie: {cookieStr}.");
                             Task loginWithCookie = browser.LoginWithCookie(cookieStr);
+                        }
+                        else
+                        {
+                            WriteLog($"Không thể đăng nhập bằng cookie (trống).");
                         }
                     }
                 }
@@ -539,6 +563,7 @@ namespace FBTool.Forms
                     fileWriterOk.WriteLine($"{username}|{password}|{uid}|{cookie}|{status}|{message}|{proxy}");
                 }
                 fileWriterOk.Close();
+                WriteLog($"Lưu vào file: {pathOK}");
             }
         }
 
@@ -557,7 +582,7 @@ namespace FBTool.Forms
                     var fileStream = fileDialog.OpenFile();
 
                     users.Clear();
-
+                    
                     try
                     {
                         using (StreamReader fileReader = new StreamReader(fileStream))
@@ -565,7 +590,7 @@ namespace FBTool.Forms
                             string line;
                             DataRow newRow;
 
-                            //WriteLog("Đang import data...");
+                            WriteLog("Đang import data...");
 
                             while ((line = fileReader.ReadLine()) != null)
                             {
@@ -600,7 +625,7 @@ namespace FBTool.Forms
                                 }
 
                             }
-                            //WriteLog("Đã import data xong.");
+                            WriteLog("Đã import data xong.");
                             //usersTotalNum = users.Rows.Count;
                             //UserTableInfo.Text = $"(Tổng {usersTotalNum} hàng, đã chọn {usersSelectedNum})";
                         }
@@ -616,16 +641,27 @@ namespace FBTool.Forms
 
         private void clearFbAccountGripViewToolStripButton_Click(object sender, EventArgs e)
         {
-            users.Clear();
+            DialogResult clearConfirm = MessageBox.Show("Xóa dữ liệu trên bảng?", 
+                "Xóa", MessageBoxButtons.YesNo);
+            if (clearConfirm == DialogResult.Yes)
+            {
+                users.Clear();
+            }
         }
 
         private void showLogStripBtn_Click(object sender, EventArgs e)
         {
-            if (logWindow == null || (logWindow != null && logWindow.IsDisposed)) logWindow = new Log();
-            logWindow.Show();
-            string[] logs = new string[] { "fuck", "you", "bitch" };
-            logWindow.LoadLog(logs);
-            logWindow.Focus();
+            bool logPanelCollapsed = splitContainer1.Panel2Collapsed;
+            if (logPanelCollapsed)
+            {
+                splitContainer1.Panel2Collapsed = false;
+                splitContainer1.Panel2.Show();
+            }
+            else
+            {
+                splitContainer1.Panel2Collapsed = true;
+                splitContainer1.Panel2.Hide();
+            }
         }
 
         private void loginFBWithUsernameBtn_Click(object sender, EventArgs e)
@@ -638,6 +674,16 @@ namespace FBTool.Forms
         {
             fbAccountsGridView.SelectAll();
             loginFbWithCookie();
+        }
+
+        private void importUIDCookieToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void importToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
