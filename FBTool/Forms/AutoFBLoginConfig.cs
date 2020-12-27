@@ -20,9 +20,11 @@ namespace FBTool.Forms
         public AutoFBLoginConfig()
         {
             InitializeComponent();
+            helpPage.DocumentText = "This is help page.";
+
             maxFBBrowserNum.Value = 5;
             timeFbLoginDelay.Value = 5;
-            dComResetLogin.Value = 5;
+            dComResetLogin.Value = 0;
         }
 
         private void cancelSettingBtn_Click(object sender, EventArgs e)
@@ -43,6 +45,8 @@ namespace FBTool.Forms
             {
                 args.Proxies.Add(proxyList.Lines[i]);
             }
+            //
+            args.NetworkResetAfter = (int)dComResetLogin.Value;
             FbLoginConfigEvent?.Invoke(this, args);
         }
     }

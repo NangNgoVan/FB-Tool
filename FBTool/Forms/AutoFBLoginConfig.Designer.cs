@@ -45,6 +45,7 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.startLoginProcessBtn = new System.Windows.Forms.Button();
             this.cancelSettingBtn = new System.Windows.Forms.Button();
+            this.helpPage = new System.Windows.Forms.WebBrowser();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -52,6 +53,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.timeFbLoginDelay)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dComResetLogin)).BeginInit();
             this.flowLayoutPanel2.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -207,6 +209,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.helpPage);
             this.tabPage2.Location = new System.Drawing.Point(4, 23);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -246,6 +249,15 @@
             this.cancelSettingBtn.UseVisualStyleBackColor = true;
             this.cancelSettingBtn.Click += new System.EventHandler(this.cancelSettingBtn_Click);
             // 
+            // helpPage
+            // 
+            this.helpPage.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.helpPage.Location = new System.Drawing.Point(3, 3);
+            this.helpPage.MinimumSize = new System.Drawing.Size(20, 20);
+            this.helpPage.Name = "helpPage";
+            this.helpPage.Size = new System.Drawing.Size(471, 268);
+            this.helpPage.TabIndex = 0;
+            // 
             // AutoFBLoginConfig
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 14F);
@@ -267,6 +279,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dComResetLogin)).EndInit();
             this.flowLayoutPanel2.ResumeLayout(false);
             this.flowLayoutPanel2.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
             this.flowLayoutPanel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -291,5 +304,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
         private System.Windows.Forms.CheckBox useProxyCheckbox;
         private System.Windows.Forms.TextBox proxyList;
+        private System.Windows.Forms.WebBrowser helpPage;
     }
 }

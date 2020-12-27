@@ -11,13 +11,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
 
 namespace FBTool.Forms
 {
     public partial class FBTool : Form
     {
-        public enum LoginStatus { SUCCESS, CHECKPOINT, FAILED};
+        public enum LoginStatus {
+            SUCCESS,
+            CHECKPOINT,
+            FAILED
+        };
 
         public delegate void LogoutEventHandler(object sender, EventArgs evt);
         public event LogoutEventHandler LogoutEvent;
@@ -25,6 +30,10 @@ namespace FBTool.Forms
         private DataTable users;
         private List<DataGridViewRow> selectedRows = new List<DataGridViewRow>();
         private ContextMenu getFbCookieCtxMenu;
+
+        private Log logWindow;
+
+        private bool loginProcessIsRunning = false;
 
         public FBTool()
         {
@@ -35,14 +44,45 @@ namespace FBTool.Forms
             CreateFilterResult();
         }
 
+        public void SetExpriedDate(DateTime? expriedDate)
+        {
+            string expriedStr = "Invalid!";
+            if (expriedDate.HasValue) expriedStr = $"Expried: {expriedDate.Value.ToShortDateString()} {expriedDate.Value.ToShortTimeString()}";
+            expriedTimeStripStatusLabel.Text = expriedStr;
+        }
+
         private void CreateFilterResult()
         {
-            filterResult.Items.Add("---All---");
+            filterResult.Items.Add("----All----");
             filterResult.SelectedIndex = 0;
             foreach (string status in Enum.GetNames(typeof(LoginStatus)))
             {
                 filterResult.Items.Add(status);
             }
+
+            filterResult.SelectedIndexChanged += (sender, args) =>
+            {
+                ToolStripComboBox comboBox = (ToolStripComboBox)sender;
+                int statusIndex = comboBox.SelectedIndex-1;
+                string status = (string)comboBox.SelectedItem;
+                BindingSource bs = new BindingSource();
+                bs.DataSource = fbAccountsGridView.DataSource;
+
+                if (statusIndex == (int)LoginStatus.SUCCESS
+                    || statusIndex == (int)LoginStatus.CHECKPOINT
+                    || statusIndex == (int)LoginStatus.FAILED
+                )
+                {
+                    
+                    bs.Filter = "Status like '%" + status + "%'";
+                    
+                }
+                else
+                {
+                    bs.Filter = null;
+                }
+                fbAccountsGridView.DataSource = bs;
+            };
         }
         private void CreateFBAccountsGridView()
         {
@@ -84,6 +124,12 @@ namespace FBTool.Forms
             proxyCol.ColumnName = "Proxy";
             users.Columns.Add(proxyCol);
 
+            fbAccountsGridView.DataBindingComplete += (o, e) =>
+            {
+                 foreach (DataGridViewRow row in fbAccountsGridView.Rows)
+                     row.HeaderCell.Value = (row.Index + 1).ToString();
+            };
+
             fbAccountsGridView.DataSource = users;
         }
 
@@ -92,7 +138,7 @@ namespace FBTool.Forms
             getFbCookieCtxMenu = new ContextMenu();
             getFbCookieCtxMenu.MenuItems.Add(new MenuItem("Đăng nhập bằng {user|pass}", onLoginFbWithUsername));
             getFbCookieCtxMenu.MenuItems.Add("Đăng nhập bằng cookie", onLoginFbWithCookie);
-            getFbCookieCtxMenu.MenuItems.Add("Lưu toàn bộ");
+            getFbCookieCtxMenu.MenuItems.Add("Lưu toàn bộ", OnSaveAllFbAccTableToFile);
             getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {uid|cookie}");
             getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {user|pass|status}");
         }
@@ -190,17 +236,7 @@ namespace FBTool.Forms
             }
         }
 
-        private async void getCookieToolStripButton_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void configToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void editAccountToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
         }
@@ -234,6 +270,9 @@ namespace FBTool.Forms
             if (evt.Status == ActiveKey.Status.OK)
             {
                 // reactive license
+                MessageBox.Show("Thành công!");
+                ((Form)sender).Close();
+                SetExpriedDate(evt.ExpriedDate);
             }
             else if (evt.Status == ActiveKey.Status.FAILED)
             {
@@ -254,6 +293,8 @@ namespace FBTool.Forms
 
         private void fbAccountsGridView_SelectionChanged(object sender, EventArgs e)
         {
+            if (loginProcessIsRunning) return;
+
             int selectedRowCount = fbAccountsGridView.Rows.GetRowCount(DataGridViewElementStates.Selected);
             selectedRows.Clear();
             if (selectedRowCount > 0)
@@ -264,24 +305,31 @@ namespace FBTool.Forms
                     selectedRows.Add(selectedRow);
                 }
             }
+            else
+            {
+                selectedRows.Clear();
+            }
         }
 
         private async void onLoginFbWithUsername(object sender, EventArgs e)
         {
+            loginFbWithUsername();   
+        }
+        private void loginFbWithUsername()
+        {
+            List<Task<FBLoginResultModel>> loginTasks = new List<Task<FBLoginResultModel>>();
             AutoFBLoginConfig configForm = new AutoFBLoginConfig();
-            
             AutoFBLoginConfig.FBLoginConfigEventHandler fbLoginHandler = async (object fbCfgFormObj, FBLoginConfigEventArgs evt) =>
             {
                 ((AutoFBLoginConfig)fbCfgFormObj).Close();
                 if (evt.Status == AutoFBLoginConfig.State.OK)
                 {
+                    loginProcessIsRunning = true;
                     int maxWindowNum = evt.MaxFBBrowserNum;
                     int currentWindowNum = 0;
                     int delayTime = evt.TimeFBLoginDelay * 1000;
                     int loginSucceed = 0;
                     if (maxWindowNum > selectedRows.Count) maxWindowNum = selectedRows.Count;
-                    List<Task<FBLoginResultModel>> loginTasks = new List<Task<FBLoginResultModel>>();
-
                     //set proxy
                     int proxyIndex = 0;
                     int proxyNum = evt.Proxies.Count;
@@ -294,19 +342,24 @@ namespace FBTool.Forms
                         }
                         else row.Cells[6].Value = "";
                     }
+
                     Func<object, int, FBLoginResultModel, FBLoginResultModel> handler = null;
                     for (int i = 0; i < maxWindowNum; i++)
                     {
+                        currentWindowNum += 1;
+
+                        if ((evt.NetworkResetAfter > 0) && (currentWindowNum % evt.NetworkResetAfter == 0))
+                        {
+                            resetIPProcess();
+                        }
                         if (i > 0)
                         {
                             await Task.Delay(delayTime);
                         }
 
-                        currentWindowNum += 1;
-
                         DataGridViewRow row = selectedRows[i];
-                        string username = row.Cells[0].Value.ToString();
-                        string pass = row.Cells[1].Value.ToString();
+                        string username = row.Cells[0].Value?.ToString();
+                        string pass = row.Cells[1].Value?.ToString();
 
 
                         FBBrowser browser = new FBBrowser(true);
@@ -327,8 +380,8 @@ namespace FBTool.Forms
                         Task<FBLoginResultModel> loginTask = browser.FBLoginAndGetCookie(i, username, pass, handler = (obj, id, cookie) =>
                         {
                             loginSucceed++;
-                            selectedRows[id].Cells[4].Value = (cookie.Status == 1) ? 
-                                LoginStatus.SUCCESS.ToString() : (cookie.Status == 0) 
+                            selectedRows[id].Cells[4].Value = (cookie.Status == 1) ?
+                                LoginStatus.SUCCESS.ToString() : (cookie.Status == 0)
                                 ? LoginStatus.FAILED.ToString() : LoginStatus.CHECKPOINT.ToString();
                             selectedRows[id].Cells[5].Value = cookie.Message;
                             selectedRows[id].Cells[3].Value = cookie.Cookie;
@@ -337,12 +390,18 @@ namespace FBTool.Forms
                             //
                             if (currentWindowNum < selectedRows.Count)
                             {
+                                currentWindowNum += 1;
+                                if ((evt.NetworkResetAfter > 0) && (currentWindowNum % evt.NetworkResetAfter == 0))
+                                {
+                                    resetIPProcess();
+                                }
+
                                 FBBrowser browser1 = new FBBrowser(true);
                                 browser1.Show();
-                                currentWindowNum += 1;
+
                                 selectedRows[currentWindowNum - 1].Cells[4].Value = "Đang lấy cookie ...";
-                                string username1 = selectedRows[currentWindowNum - 1].Cells[0].Value.ToString();
-                                string pass1 = selectedRows[currentWindowNum - 1].Cells[1].Value.ToString();
+                                string username1 = selectedRows[currentWindowNum - 1].Cells[0].Value?.ToString();
+                                string pass1 = selectedRows[currentWindowNum - 1].Cells[1].Value?.ToString();
                                 Debug.WriteLine(username1 + " " + pass1);
                                 Task<FBLoginResultModel> loginTask1 = browser1.FBLoginAndGetCookie(currentWindowNum - 1, username1, pass1, handler);
                                 loginTasks.Add(loginTask1);
@@ -353,12 +412,29 @@ namespace FBTool.Forms
 
                         loginTasks.Add(loginTask);
                     }
+                    await Task.WhenAll(loginTasks);
+                    loginProcessIsRunning = false;
                 }
             };
             configForm.FbLoginConfigEvent += fbLoginHandler;
             configForm.Show();
         }
+        private void resetIPProcess()
+        {
+            // reset network
+            Debug.WriteLine("Reset network started...");
+            Process releaseIpProcess = Process.Start("ipconfig", "/release");
+            releaseIpProcess.WaitForExit();
+            Process renewIpProcess = Process.Start("ipconfig", "/renew");
+            renewIpProcess.WaitForExit();
+            Debug.WriteLine("Reset network done!");
+            //
+        }
         private async void onLoginFbWithCookie(object sender, EventArgs e)
+        {
+            loginFbWithCookie();
+        }
+        private void loginFbWithCookie()
         {
             AutoFBLoginConfig configForm = new AutoFBLoginConfig();
             AutoFBLoginConfig.FBLoginConfigEventHandler fbLoginHandler = async (object fbCfgFormObj, FBLoginConfigEventArgs evt) =>
@@ -384,18 +460,184 @@ namespace FBTool.Forms
                     }
                     for (int i = 0; i < selectedRows.Count; i++)
                     {
-                        BrowserFBWindow browser = new BrowserFBWindow(true);
-                        browser.Show();
                         string cookieStr = selectedRows.ElementAt(i).Cells[3].Value.ToString();
                         if (cookieStr.Length > 0)
                         {
+                            BrowserFBWindow browser = new BrowserFBWindow(true);
+                            browser.Show();
                             Task loginWithCookie = browser.LoginWithCookie(cookieStr);
                         }
                     }
                 }
             };
             configForm.FbLoginConfigEvent += fbLoginHandler;
-            configForm.Show();  
+            configForm.Show();
+        }
+
+        private void OnSaveAllFbAccTableToFile(object sender, EventArgs evt)
+        {
+            if (fbAccountsGridView.Rows.Count == 0) return;
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string selectedPath = fbd.SelectedPath;
+
+                string savedTime = DateTime.Now.ToString("yyMMddHHmmss");
+
+                string pathOK = Path.Combine(selectedPath, $"{savedTime}_All.txt");
+                
+                StreamWriter fileWriterOk = new StreamWriter(pathOK);
+
+                for (int i = 0; i < fbAccountsGridView.Rows.Count; i++)
+                {
+                    DataGridViewRow row = fbAccountsGridView.Rows[i];
+
+                    string username = "";
+                    string password = "";
+                    string cookie = "";
+                    string uid = "";
+                    string status = "";
+                    string message = "";
+                    string proxy = "";
+
+                    if ((row.Cells[0].Value != DBNull.Value) && (row.Cells[0].Value != null))
+                    {
+                        username = row.Cells[0].Value.ToString();
+                    }
+
+                    if ((row.Cells[1].Value != DBNull.Value) && (row.Cells[1].Value != null))
+                    {
+                        password = row.Cells[1].Value.ToString();
+                    }
+
+                    if ((row.Cells[2].Value != DBNull.Value) && (row.Cells[2].Value != null))
+                    {
+                        uid = row.Cells[2].Value.ToString();
+                    }
+
+                    if ((row.Cells[3].Value != DBNull.Value) && (row.Cells[3].Value != null))
+                    {
+                        cookie = row.Cells[3].Value.ToString();
+                    }
+
+                    if ((row.Cells[4].Value != DBNull.Value) && (row.Cells[4].Value != null))
+                    {
+                        status = row.Cells[4].Value.ToString();
+                    }
+
+                    if ((row.Cells[5].Value != DBNull.Value) && (row.Cells[5].Value != null))
+                    {
+                        message = row.Cells[5].Value.ToString();
+                    }
+
+                    if ((row.Cells[6].Value != DBNull.Value) && (row.Cells[6].Value != null))
+                    {
+                        proxy = row.Cells[6].Value.ToString();
+                    }
+
+                    fileWriterOk.WriteLine($"{username}|{password}|{uid}|{cookie}|{status}|{message}|{proxy}");
+                }
+                fileWriterOk.Close();
+            }
+        }
+
+        private void importUserPassMessageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog fileDialog = new OpenFileDialog())
+            {
+                fileDialog.InitialDirectory = "c:\\";
+                fileDialog.Filter = "txt files (*.txt)|*.txt";
+                fileDialog.FilterIndex = 1;
+                fileDialog.RestoreDirectory = true;
+
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //String filePath = fileDialog.FileName;
+                    var fileStream = fileDialog.OpenFile();
+
+                    users.Clear();
+
+                    try
+                    {
+                        using (StreamReader fileReader = new StreamReader(fileStream))
+                        {
+                            string line;
+                            DataRow newRow;
+
+                            //WriteLog("Đang import data...");
+
+                            while ((line = fileReader.ReadLine()) != null)
+                            {
+                                string[] lineSplited = line.Split('|');
+
+                                string username = "";
+                                string password = "";
+                                string message = "";
+
+                                if (lineSplited.Length >= 2)
+                                {
+                                    if (lineSplited.Length == 2)
+                                    {
+                                        username = lineSplited[0];
+                                        password = lineSplited[1];
+                                    }
+                                    if (lineSplited.Length == 3)
+                                    {
+                                        username = lineSplited[0];
+                                        password = lineSplited[1];
+                                        message = lineSplited[2];
+                                    }
+                                    newRow = users.NewRow();
+                                    newRow["UserName"] = username;
+                                    newRow["PassWord"] = password;
+                                    newRow["Cookie"] = message;
+                                    users.Rows.Add(newRow);
+                                }
+                                else
+                                {
+
+                                }
+
+                            }
+                            //WriteLog("Đã import data xong.");
+                            //usersTotalNum = users.Rows.Count;
+                            //UserTableInfo.Text = $"(Tổng {usersTotalNum} hàng, đã chọn {usersSelectedNum})";
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                }
+            }
+        }
+
+        private void clearFbAccountGripViewToolStripButton_Click(object sender, EventArgs e)
+        {
+            users.Clear();
+        }
+
+        private void showLogStripBtn_Click(object sender, EventArgs e)
+        {
+            if (logWindow == null || (logWindow != null && logWindow.IsDisposed)) logWindow = new Log();
+            logWindow.Show();
+            string[] logs = new string[] { "fuck", "you", "bitch" };
+            logWindow.LoadLog(logs);
+            logWindow.Focus();
+        }
+
+        private void loginFBWithUsernameBtn_Click(object sender, EventArgs e)
+        {
+            fbAccountsGridView.SelectAll();
+            loginFbWithUsername();
+        }
+
+        private void loginFBWithCookieBtn_Click(object sender, EventArgs e)
+        {
+            fbAccountsGridView.SelectAll();
+            loginFbWithCookie();
         }
     }
 }

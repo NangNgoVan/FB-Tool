@@ -11,9 +11,10 @@ namespace FBTool.CustomEventArgs
         public Forms.AutoFBLoginConfig.State Status;
         public int MaxFBBrowserNum;
         public int TimeFBLoginDelay;
+        // proxy
         public bool UseProxy;
         public List<string> Proxies;
-        // proxy
-
+        // network reset
+        public int NetworkResetAfter;
     }
 }

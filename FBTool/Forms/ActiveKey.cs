@@ -14,7 +14,7 @@ namespace FBTool.Forms
 {
     public partial class ActiveKey : Form
     {
-        public enum Status { OK, FAILED};
+        public enum Status { OK, FAILED, ERROR};
         public delegate void ActiveToolHandler(object sender, Events.ActiveEventArgs evt);
         public event ActiveToolHandler ActiveToolEvent;
         public Services.LicenseManager LicenseManager;
@@ -28,6 +28,8 @@ namespace FBTool.Forms
         public void SetLicenseManager(Services.LicenseManager licenseManager)
         {
             LicenseManager = licenseManager;
+            string license = licenseManager.LoadLicense();
+            LicenseInput.AppendText(license);
         }
 
         private void activeBtn_Click(object sender, EventArgs e)
@@ -37,19 +39,22 @@ namespace FBTool.Forms
             if (LicenseManager == null) throw new Exception("License manager installed!");
             try
             {
+                
                 if (LicenseManager.CheckLicense(license))
                 {
-                    ActiveToolEvent?.Invoke(this, new Events.ActiveEventArgs(Status.OK, license));
+                    DateTime? expriedDate = LicenseManager.ExpriedDate;
+                    ActiveToolEvent?.Invoke(this, new Events.ActiveEventArgs(Status.OK, license, expriedDate, ""));
                 }
                 else
                 {
-                    MessageBox.Show("Mã kích hoạt không hợp lệ!");
-                    ActiveToolEvent?.Invoke(this, new Events.ActiveEventArgs(Status.FAILED, ""));
+                    MessageBox.Show("Mã kích hoạt không hợp lệ hoặc hết hạn!");
+                    ActiveToolEvent?.Invoke(this, new Events.ActiveEventArgs(Status.FAILED, "", null, ""));
                 }
             }
             catch (Exception exception)
             {
-                MessageBox.Show(exception.Message);
+                //MessageBox.Show(exception.Message);
+                ActiveToolEvent?.Invoke(this, new Events.ActiveEventArgs(Status.ERROR,"",null, exception.Message));
             }
         }
 

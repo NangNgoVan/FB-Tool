@@ -16,8 +16,7 @@ namespace FBTool
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new FBToolForm());
-            Application.Run(new Forms.App());
+            Application.Run(new FBTool.App());
         }
     }
 }

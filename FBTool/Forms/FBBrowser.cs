@@ -17,6 +17,7 @@ namespace FBTool.Forms
     public partial class FBBrowser : Form
     {
         private string FB_URL = "https://www.facebook.com/";
+        //private string FB_URL = "https://m.facebook.com/";
 
         public ChromiumWebBrowser chromeBrowser;
 
