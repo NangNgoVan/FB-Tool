@@ -125,6 +125,12 @@ namespace FBTool.Forms
                     value.UID = cUser;
                     value.Status = 1;
                     value.Cookie = cookie;
+                    //string getFBCreatedDate = "(function () {var x = document.getElementsByClassName('_1ufq')[0];if(x!=undefined) {return x.textContent} else {return 'undefined'}})();";
+                    string getFBCreatedDate = "(function () {let v = 'undefined';try{v = document.getElementsByClassName('_24c5')[9].childNodes[0].childNodes[1].childNodes[2].firstElementChild.innerText}catch(err){}return v;})();";
+                    await LoadPageAsync("https://m.facebook.com/your_information");
+                    JavascriptResponse res = await chromeBrowser.GetMainFrame().EvaluateScriptAsync(getFBCreatedDate);
+                    //Debug.WriteLine($"ngay tao fb {res.Result.ToString()}");
+                    value.CreatedDate = res.Result.ToString();
                 }
 
                 callback?.Invoke(this, id, value);
@@ -149,7 +155,7 @@ namespace FBTool.Forms
             chromeBrowser.ExecuteScriptAsyncWhenPageLoaded(jsCode);
         }
 
-        public Task<bool> LoadPageAsync(string url, Func<bool> callback = null)
+        public Task<bool> LoadPageAsync(string url, Func<Task<bool>> callback = null)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             EventHandler<LoadingStateChangedEventArgs> handler = null;

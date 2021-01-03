@@ -13,5 +13,6 @@ namespace FBTool.Models
         public string Message = "";
         public string Cookie = "";
         public string UID;
+        public string CreatedDate = "";
     }
 }

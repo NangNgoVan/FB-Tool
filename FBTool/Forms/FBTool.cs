@@ -103,6 +103,11 @@ namespace FBTool.Forms
             uIDCol.ColumnName = "UID";
             users.Columns.Add(uIDCol);
 
+            DataColumn createdDateCol = new DataColumn();
+            createdDateCol.DataType = Type.GetType("System.String");
+            createdDateCol.ColumnName = "CreatedDate";
+            users.Columns.Add(createdDateCol);
+
             DataColumn cookieCol = new DataColumn();
             cookieCol.DataType = System.Type.GetType("System.String");
             cookieCol.ColumnName = "Cookie";
@@ -377,7 +382,7 @@ namespace FBTool.Forms
 
                         if (evt.UseProxy)
                         {
-                            string proxyUrl = row.Cells[6].Value.ToString();
+                            string proxyUrl = row.Cells[7].Value.ToString();
                             if (proxyUrl.Length > 0)
                             {
                                 bool setProxy = await browser.SetProxy(proxyUrl);
@@ -385,17 +390,18 @@ namespace FBTool.Forms
 
                         }
 
-                        row.Cells[4].Value = "Đang lấy cookie ...";
+                        row.Cells[5].Value = "Đang lấy cookie ...";
                         WriteLog($"Đang lấy cookie tài khoản: {username}");
                         //
                         Task<FBLoginResultModel> loginTask = browser.FBLoginAndGetCookie(i, username, pass, handler = (obj, id, cookie) =>
                         {
                             loginSucceed++;
-                            selectedRows[id].Cells[4].Value = (cookie.Status == 1) ?
+                            selectedRows[id].Cells[5].Value = (cookie.Status == 1) ?
                                 LoginStatus.SUCCESS.ToString() : (cookie.Status == 0)
                                 ? LoginStatus.FAILED.ToString() : LoginStatus.CHECKPOINT.ToString();
-                            selectedRows[id].Cells[5].Value = cookie.Message;
-                            selectedRows[id].Cells[3].Value = cookie.Cookie;
+                            selectedRows[id].Cells[6].Value = cookie.Message;
+                            selectedRows[id].Cells[4].Value = cookie.Cookie;
+                            selectedRows[id].Cells[3].Value = cookie.CreatedDate;
                             selectedRows[id].Cells[2].Value = cookie.UID;
                             //TasksProgress.Value = (int)(100 * loginSucceed / usersTotalNum);
                             //
@@ -410,7 +416,7 @@ namespace FBTool.Forms
                                 FBBrowser browser1 = new FBBrowser(true);
                                 browser1.Show();
 
-                                selectedRows[currentWindowNum - 1].Cells[4].Value = "Đang lấy cookie ...";
+                                selectedRows[currentWindowNum - 1].Cells[5].Value = "Đang lấy cookie ...";
 
                                 string username1 = selectedRows[currentWindowNum - 1].Cells[0].Value?.ToString();
                                 string pass1 = selectedRows[currentWindowNum - 1].Cells[1].Value?.ToString();
@@ -479,8 +485,8 @@ namespace FBTool.Forms
                     }
                     for (int i = 0; i < selectedRows.Count; i++)
                     {
-                        string cookieStr = selectedRows.ElementAt(i).Cells[3].Value.ToString();
-                        if (cookieStr.Length > 0)
+                        string cookieStr = selectedRows.ElementAt(i).Cells[4].Value?.ToString();
+                        if ((cookieStr != null) && (cookieStr.Length > 0))
                         {
                             BrowserFBWindow browser = new BrowserFBWindow(true);
                             browser.Show();
