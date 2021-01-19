@@ -50,7 +50,7 @@ namespace FBTool.Forms
             //chromeBrowser.ExecuteScriptAsyncWhenPageLoaded("alert('All Resources Have Loaded');", false);
         }
 
-        public async Task<FBLoginResultModel> FBLoginAndGetCookie(int id, string username, string pass, Func<object, int, FBLoginResultModel, FBLoginResultModel> callback = null)
+        public async Task<FBLoginResultModel> FBLoginAndGetCookie(int id, string username, string pass, Func<object, int, FBLoginResultModel, Task<FBLoginResultModel>> callback = null)
         {
             try
             {

@@ -48,6 +48,8 @@
             this.toolStrip2 = new System.Windows.Forms.ToolStrip();
             this.importToolStripDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.importUserPassMessageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importUIDCookieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.loginFBWithUsernameBtn = new System.Windows.Forms.ToolStripButton();
             this.loginFBWithCookieBtn = new System.Windows.Forms.ToolStripButton();
@@ -60,8 +62,6 @@
             this.showLogStripBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.logViewer = new System.Windows.Forms.TextBox();
-            this.importUIDCookieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
@@ -144,7 +144,7 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.expriedTimeStripStatusLabel});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 335);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 533);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.statusStrip1.Size = new System.Drawing.Size(665, 22);
@@ -171,8 +171,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.logViewer);
-            this.splitContainer1.Size = new System.Drawing.Size(665, 311);
-            this.splitContainer1.SplitterDistance = 220;
+            this.splitContainer1.Size = new System.Drawing.Size(665, 509);
+            this.splitContainer1.SplitterDistance = 360;
             this.splitContainer1.TabIndex = 2;
             // 
             // tabControl1
@@ -182,7 +182,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(665, 220);
+            this.tabControl1.Size = new System.Drawing.Size(665, 360);
             this.tabControl1.TabIndex = 4;
             // 
             // tabPage1
@@ -192,7 +192,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 23);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(657, 193);
+            this.tabPage1.Size = new System.Drawing.Size(657, 333);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Quản lý Cookie";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -205,7 +205,7 @@
             this.fbAccountsGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fbAccountsGridView.Location = new System.Drawing.Point(3, 28);
             this.fbAccountsGridView.Name = "fbAccountsGridView";
-            this.fbAccountsGridView.Size = new System.Drawing.Size(651, 162);
+            this.fbAccountsGridView.Size = new System.Drawing.Size(651, 302);
             this.fbAccountsGridView.TabIndex = 4;
             this.fbAccountsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.fbAccountsGridView_CellClick);
             this.fbAccountsGridView.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.fbAccountsGridView_CellMouseUp);
@@ -251,6 +251,20 @@
             this.importUserPassMessageToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
             this.importUserPassMessageToolStripMenuItem.Text = "Import dạng {user|pass|message}";
             this.importUserPassMessageToolStripMenuItem.Click += new System.EventHandler(this.importUserPassMessageToolStripMenuItem_Click);
+            // 
+            // importUIDCookieToolStripMenuItem
+            // 
+            this.importUIDCookieToolStripMenuItem.Name = "importUIDCookieToolStripMenuItem";
+            this.importUIDCookieToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
+            this.importUIDCookieToolStripMenuItem.Text = "Import dạng {uid|cookie}";
+            this.importUIDCookieToolStripMenuItem.Click += new System.EventHandler(this.importUIDCookieToolStripMenuItem_Click);
+            // 
+            // importToolStripMenuItem
+            // 
+            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
+            this.importToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
+            this.importToolStripMenuItem.Text = "Import toàn bộ";
+            this.importToolStripMenuItem.Click += new System.EventHandler(this.importToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -342,28 +356,14 @@
             this.logViewer.Multiline = true;
             this.logViewer.Name = "logViewer";
             this.logViewer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.logViewer.Size = new System.Drawing.Size(665, 87);
+            this.logViewer.Size = new System.Drawing.Size(665, 145);
             this.logViewer.TabIndex = 0;
-            // 
-            // importUIDCookieToolStripMenuItem
-            // 
-            this.importUIDCookieToolStripMenuItem.Name = "importUIDCookieToolStripMenuItem";
-            this.importUIDCookieToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
-            this.importUIDCookieToolStripMenuItem.Text = "Import dạng {uid|cookie}";
-            this.importUIDCookieToolStripMenuItem.Click += new System.EventHandler(this.importUIDCookieToolStripMenuItem_Click);
-            // 
-            // importToolStripMenuItem
-            // 
-            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
-            this.importToolStripMenuItem.Size = new System.Drawing.Size(248, 22);
-            this.importToolStripMenuItem.Text = "Import toàn bộ";
-            this.importToolStripMenuItem.Click += new System.EventHandler(this.importToolStripMenuItem_Click);
             // 
             // FBTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(665, 357);
+            this.ClientSize = new System.Drawing.Size(665, 555);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);

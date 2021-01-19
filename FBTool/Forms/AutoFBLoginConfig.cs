@@ -32,7 +32,7 @@ namespace FBTool.Forms
             }
 
             maxFBBrowserNum.Value = 5;
-            timeFbLoginDelay.Value = 5;
+            timeFbLoginDelay.Value = 0;
             dComResetLogin.Value = 0;
         }
 

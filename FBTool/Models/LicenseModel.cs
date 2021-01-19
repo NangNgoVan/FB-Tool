@@ -8,7 +8,7 @@ namespace FBTool.Models
 {
     class LicenseModel
     {
-        public enum LICENSE_TYPE {TRIAL, ONE_YEAR, FOREVER, TEST};
+        public enum LICENSE_TYPE {TRIAL, ONE_YEAR, FOREVER, ONE_WEEK, TEN_DAYS};
         public string ProductID;
         public DateTime Date;
         public LICENSE_TYPE LicenseType;

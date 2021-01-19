@@ -143,9 +143,14 @@ namespace FBTool.Services
                         DateTime forever = DateTime.MaxValue.Date;
                         ExpriedDate = forever;
                     }
-                    else if (hiddenLicenseModel.LicenseType == LicenseModel.LICENSE_TYPE.TEST)
+                    else if (hiddenLicenseModel.LicenseType == LicenseModel.LICENSE_TYPE.ONE_WEEK)
                     {
-                        DateTime tenSeconds = hiddenLicenseModel.Date.AddDays(2);
+                        DateTime tenSeconds = hiddenLicenseModel.Date.AddDays(7);
+                        ExpriedDate = tenSeconds;
+                    }
+                    else if (hiddenLicenseModel.LicenseType == LicenseModel.LICENSE_TYPE.TEN_DAYS)
+                    {
+                        DateTime tenSeconds = hiddenLicenseModel.Date.AddDays(10);
                         ExpriedDate = tenSeconds;
                     }
 

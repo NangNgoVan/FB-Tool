@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -144,13 +146,13 @@ namespace FBTool.Forms
             getFbCookieCtxMenu.MenuItems.Add(new MenuItem("Đăng nhập bằng {user|pass}", onLoginFbWithUsername));
             getFbCookieCtxMenu.MenuItems.Add("Đăng nhập bằng cookie", onLoginFbWithCookie);
             getFbCookieCtxMenu.MenuItems.Add("Lưu toàn bộ", OnSaveAllFbAccTableToFile);
-            getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {uid|cookie}");
-            getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {user|pass|status}");
+            getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {uid|cookie}", OnSelectedRowCookieFbAccTableToFile);
+            getFbCookieCtxMenu.MenuItems.Add("Lưu dưới dạng {user|pass|message}", OnSelectedRowUsernameFbAccTableToFile);
         }
         private void WriteLog(string message)
         {
             string currentTime = DateTime.Now.ToString();
-            string logMsg = $"[{currentTime}] {message}\n";
+            string logMsg = $"[{currentTime}] {message}{Environment.NewLine}";
             logViewer.AppendText(logMsg);
         }
         private void FBTool_Load(object sender, EventArgs e)
@@ -328,7 +330,6 @@ namespace FBTool.Forms
         }
         private void loginFbWithUsername()
         {
-            List<Task<FBLoginResultModel>> loginTasks = new List<Task<FBLoginResultModel>>();
             AutoFBLoginConfig configForm = new AutoFBLoginConfig();
             AutoFBLoginConfig.FBLoginConfigEventHandler fbLoginHandler = async (object fbCfgFormObj, FBLoginConfigEventArgs evt) =>
             {
@@ -344,6 +345,7 @@ namespace FBTool.Forms
                     //set proxy
                     int proxyIndex = 0;
                     int proxyNum = evt.Proxies.Count;
+                    List<Task<FBLoginResultModel>> loginTasks = new List<Task<FBLoginResultModel>>();
                     WriteLog("Set địa chỉ proxy (nếu có).");
                     foreach (DataGridViewRow row in selectedRows)
                     {
@@ -355,84 +357,108 @@ namespace FBTool.Forms
                         else row.Cells[6].Value = "";
                     }
 
-                    Func<object, int, FBLoginResultModel, FBLoginResultModel> handler = null;
+                    Func<object, int, FBLoginResultModel, Task<FBLoginResultModel>> handler = null;
 
                     WriteLog("Đang tiến hành thu thập cookie...");
 
-                    for (int i = 0; i < maxWindowNum; i++)
+                    Task networkResetProcessing = null;
+                    int fbAccLoggedInNum = 0;
+
+                    while (currentWindowNum < selectedRows.Count)
                     {
-                        currentWindowNum += 1;
-
-                        if ((evt.NetworkResetAfter > 0) && (currentWindowNum % evt.NetworkResetAfter == 0))
+                        if ((evt.NetworkResetAfter > 0) && (fbAccLoggedInNum == evt.NetworkResetAfter))
                         {
-                            resetIPProcess();
-                        }
-                        if (i > 0)
-                        {
-                            await Task.Delay(delayTime);
-                        }
-
-                        DataGridViewRow row = selectedRows[i];
-                        string username = row.Cells[0].Value?.ToString();
-                        string pass = row.Cells[1].Value?.ToString();
-
-
-                        FBBrowser browser = new FBBrowser(true);
-                        browser.Show();
-
-                        if (evt.UseProxy)
-                        {
-                            string proxyUrl = row.Cells[7].Value.ToString();
-                            if (proxyUrl.Length > 0)
+                            //WriteLog($"[{loginTasks.Count}] cửa sổ đang chạy...");
+                            await Task.WhenAll(loginTasks);
+                            loginTasks.Clear();
+                            //WriteLog("Reset internet connection...");
+                            if ((networkResetProcessing == null) || (networkResetProcessing.Status.Equals(TaskStatus.RanToCompletion)))
                             {
-                                bool setProxy = await browser.SetProxy(proxyUrl);
+                                //WriteLog("Init thread...");
+                                networkResetProcessing = Task.Run(() => resetIPProcess());
+                                fbAccLoggedInNum = 0;
                             }
-
                         }
-
-                        row.Cells[5].Value = "Đang lấy cookie ...";
-                        WriteLog($"Đang lấy cookie tài khoản: {username}");
-                        //
-                        Task<FBLoginResultModel> loginTask = browser.FBLoginAndGetCookie(i, username, pass, handler = (obj, id, cookie) =>
+                        else
                         {
-                            loginSucceed++;
-                            selectedRows[id].Cells[5].Value = (cookie.Status == 1) ?
-                                LoginStatus.SUCCESS.ToString() : (cookie.Status == 0)
-                                ? LoginStatus.FAILED.ToString() : LoginStatus.CHECKPOINT.ToString();
-                            selectedRows[id].Cells[6].Value = cookie.Message;
-                            selectedRows[id].Cells[4].Value = cookie.Cookie;
-                            selectedRows[id].Cells[3].Value = cookie.CreatedDate;
-                            selectedRows[id].Cells[2].Value = cookie.UID;
-                            //TasksProgress.Value = (int)(100 * loginSucceed / usersTotalNum);
-                            //
-                            if (currentWindowNum < selectedRows.Count)
+                            if (networkResetProcessing != null)
                             {
-                                currentWindowNum += 1;
-                                if ((evt.NetworkResetAfter > 0) && (currentWindowNum % evt.NetworkResetAfter == 0))
+                                WriteLog("Đang chờ...");
+                                await networkResetProcessing;
+                            }
+                            DataGridViewRow row = selectedRows[currentWindowNum];
+                            string username = row.Cells[0].Value?.ToString();
+                            string pass = row.Cells[1].Value?.ToString();
+                            FBBrowser browser = new FBBrowser(true);
+                            browser.Show();
+                            if (evt.UseProxy)
+                            {
+                                string proxyUrl = row.Cells[7].Value.ToString();
+                                if (proxyUrl.Length > 0)
                                 {
-                                    resetIPProcess();
+                                    bool setProxy = await browser.SetProxy(proxyUrl);
                                 }
 
-                                FBBrowser browser1 = new FBBrowser(true);
-                                browser1.Show();
-
-                                selectedRows[currentWindowNum - 1].Cells[5].Value = "Đang lấy cookie ...";
-
-                                string username1 = selectedRows[currentWindowNum - 1].Cells[0].Value?.ToString();
-                                string pass1 = selectedRows[currentWindowNum - 1].Cells[1].Value?.ToString();
-
-                                //Debug.WriteLine(username1 + " " + pass1);
-                                WriteLog($"Đang lấy cookie tài khoản: {username1}");
-
-                                Task<FBLoginResultModel> loginTask1 = browser1.FBLoginAndGetCookie(currentWindowNum - 1, username1, pass1, handler);
-                                loginTasks.Add(loginTask1);
                             }
-                            //
-                            return cookie;
-                        });
-
-                        loginTasks.Add(loginTask);
+                            row.Cells[5].Value = "Đang lấy cookie ...";
+                            WriteLog($"Đang lấy cookie tài khoản: {username}");
+                            Task<FBLoginResultModel> loginTask = browser.FBLoginAndGetCookie(currentWindowNum, username, pass, handler = async (obj, id, cookie) =>
+                            {
+                                loginSucceed++;
+                                selectedRows[id].Cells[5].Value = (cookie.Status == 1) ?
+                                    LoginStatus.SUCCESS.ToString() : (cookie.Status == 0)
+                                    ? LoginStatus.FAILED.ToString() : LoginStatus.CHECKPOINT.ToString();
+                                selectedRows[id].Cells[6].Value = cookie.Message;
+                                selectedRows[id].Cells[4].Value = cookie.Cookie;
+                                selectedRows[id].Cells[3].Value = cookie.CreatedDate;
+                                selectedRows[id].Cells[2].Value = cookie.UID;
+                                //TasksProgress.Value = (int)(100 * loginSucceed / usersTotalNum);
+                                //
+                                if (currentWindowNum < selectedRows.Count)
+                                {
+                                    if ((evt.NetworkResetAfter > 0) && (fbAccLoggedInNum == evt.NetworkResetAfter))
+                                    {
+                                        //WriteLog($"[{loginTasks.Count}] cửa sổ đang chạy [2]...");
+                                        await Task.WhenAll(loginTasks);
+                                        loginTasks.Clear();
+                                        //WriteLog("Reset internet connection [2]...");
+                                        if ((networkResetProcessing == null) || (networkResetProcessing.Status.Equals(TaskStatus.RanToCompletion)))
+                                        {
+                                            //WriteLog("Init thread [2]...");
+                                            networkResetProcessing = Task.Run(() => resetIPProcess());
+                                            fbAccLoggedInNum = 0;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (networkResetProcessing != null)
+                                        {
+                                            WriteLog("Đang chờ [2]...");
+                                            await networkResetProcessing;
+                                        }
+                                        FBBrowser browser1 = new FBBrowser(true);
+                                        browser1.Show();
+                                        selectedRows[currentWindowNum].Cells[5].Value = "Đang lấy cookie ...";
+                                        string username1 = selectedRows[currentWindowNum].Cells[0].Value?.ToString();
+                                        string pass1 = selectedRows[currentWindowNum].Cells[1].Value?.ToString();
+                                        //Debug.WriteLine(username1 + " " + pass1);
+                                        WriteLog($"Đang lấy cookie tài khoản [2]: {username1}");
+                                        Task<FBLoginResultModel> loginTask1 = browser1.FBLoginAndGetCookie(currentWindowNum, username1, pass1, handler);
+                                        currentWindowNum += 1;
+                                        fbAccLoggedInNum += 1;
+                                        loginTasks.Add(loginTask1);
+                                    }
+                                }
+                                //
+                                return cookie;
+                            });
+                            currentWindowNum += 1;
+                            fbAccLoggedInNum += 1;
+                            loginTasks.Add(loginTask);
+                            await Task.Delay(delayTime);
+                        }
                     }
+
                     await Task.WhenAll(loginTasks);
                     WriteLog("Đã lấy xong cookie.");
                     loginProcessIsRunning = false;
@@ -445,14 +471,49 @@ namespace FBTool.Forms
         {
             // reset network
             //Debug.WriteLine("Reset network started...");
-            WriteLog("Đang reset địa chỉ IP...");
+            //WriteLog("Đang reset địa chỉ IP...");
             Process releaseIpProcess = Process.Start("ipconfig", "/release");
             releaseIpProcess.WaitForExit();
             Process renewIpProcess = Process.Start("ipconfig", "/renew");
             renewIpProcess.WaitForExit();
             //Debug.WriteLine("Đã reset địa chỉ IP xong.");
-            WriteLog("Đã reset địa chỉ IP xong.");
             //
+        }
+        private string getPublicIPAddress()
+        {
+            string ipAddrStr = "";
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        ipAddrStr = ip.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return ipAddrStr;
+        }
+        private string getPrivateIPAddress()
+        {
+            String address = "";
+            WebRequest request = WebRequest.Create("http://checkip.dyndns.org/");
+            using (WebResponse response = request.GetResponse())
+            using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+            {
+                address = stream.ReadToEnd();
+            }
+
+            int first = address.IndexOf("Address: ") + 9;
+            int last = address.LastIndexOf("</body>");
+            address = address.Substring(first, last - first);
+
+            return address;
         }
         private async void onLoginFbWithCookie(object sender, EventArgs e)
         {
@@ -527,6 +588,7 @@ namespace FBTool.Forms
                     string password = "";
                     string cookie = "";
                     string uid = "";
+                    string createdDate = "";
                     string status = "";
                     string message = "";
                     string proxy = "";
@@ -546,33 +608,111 @@ namespace FBTool.Forms
                         uid = row.Cells[2].Value.ToString();
                     }
 
-                    if ((row.Cells[3].Value != DBNull.Value) && (row.Cells[3].Value != null))
+                    if ((row.Cells[2].Value != DBNull.Value) && (row.Cells[3].Value != null))
                     {
-                        cookie = row.Cells[3].Value.ToString();
+                        createdDate = row.Cells[3].Value.ToString();
                     }
 
                     if ((row.Cells[4].Value != DBNull.Value) && (row.Cells[4].Value != null))
                     {
-                        status = row.Cells[4].Value.ToString();
+                        cookie = row.Cells[4].Value.ToString();
                     }
 
                     if ((row.Cells[5].Value != DBNull.Value) && (row.Cells[5].Value != null))
                     {
-                        message = row.Cells[5].Value.ToString();
+                        status = row.Cells[5].Value.ToString();
                     }
 
                     if ((row.Cells[6].Value != DBNull.Value) && (row.Cells[6].Value != null))
                     {
-                        proxy = row.Cells[6].Value.ToString();
+                        message = row.Cells[6].Value.ToString();
                     }
 
-                    fileWriterOk.WriteLine($"{username}|{password}|{uid}|{cookie}|{status}|{message}|{proxy}");
+                    if ((row.Cells[7].Value != DBNull.Value) && (row.Cells[7].Value != null))
+                    {
+                        proxy = row.Cells[7].Value.ToString();
+                    }
+
+                    fileWriterOk.WriteLine($"{username}|{password}|{uid}|{createdDate}|{cookie}|{status}|{message}|{proxy}");
                 }
                 fileWriterOk.Close();
                 WriteLog($"Lưu vào file: {pathOK}");
             }
         }
+        private void OnSelectedRowCookieFbAccTableToFile(object sender, EventArgs evt)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string selectedPath = fbd.SelectedPath;
 
+                string savedTime = DateTime.Now.ToString("yyMMddHHmmss");
+
+                string pathOK = Path.Combine(selectedPath, $"{savedTime}_cookies.txt");
+
+                StreamWriter fileWriterOk = new StreamWriter(pathOK);
+                foreach (DataGridViewRow row in selectedRows)
+                {
+                    string uid = "";
+                    string cookie = "";
+                    
+                    if ((row.Cells[2].Value != DBNull.Value) && (row.Cells[2].Value != null))
+                    {
+                        uid = row.Cells[2].Value.ToString();
+                    }
+
+                    if ((row.Cells[4].Value != DBNull.Value) && (row.Cells[4].Value != null))
+                    {
+                        cookie = row.Cells[4].Value.ToString();
+                    }
+
+                    fileWriterOk.WriteLine($"{uid}|{cookie}|");
+                }
+                fileWriterOk.Close();
+                WriteLog($"Lưu vào file: {pathOK}");
+            }
+        }
+        private void OnSelectedRowUsernameFbAccTableToFile(object sender, EventArgs evt)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string selectedPath = fbd.SelectedPath;
+
+                string savedTime = DateTime.Now.ToString("yyMMddHHmmss");
+
+                string pathOK = Path.Combine(selectedPath, $"{savedTime}_usernames.txt");
+
+                StreamWriter fileWriterOk = new StreamWriter(pathOK);
+
+                foreach (DataGridViewRow row in selectedRows)
+                {
+                    string username = "";
+                    string password = "";
+                    string message = "";
+
+                    if ((row.Cells[0].Value != DBNull.Value) && (row.Cells[0].Value != null))
+                    {
+                        username = row.Cells[0].Value.ToString();
+                    }
+
+                    if ((row.Cells[1].Value != DBNull.Value) && (row.Cells[1].Value != null))
+                    {
+                        password = row.Cells[1].Value.ToString();
+                    }
+
+                    if ((row.Cells[6].Value != DBNull.Value) && (row.Cells[6].Value != null))
+                    {
+                        message = row.Cells[6].Value.ToString();
+                    }
+
+                    fileWriterOk.WriteLine($"{username}|{password}|{message}");
+                }
+                fileWriterOk.Close();
+                WriteLog($"Lưu vào file: {pathOK}");
+            }
+                
+        }
         private void importUserPassMessageToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog fileDialog = new OpenFileDialog())
@@ -684,12 +824,147 @@ namespace FBTool.Forms
 
         private void importUIDCookieToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            using (OpenFileDialog fileDialog = new OpenFileDialog())
+            {
+                fileDialog.InitialDirectory = "c:\\";
+                fileDialog.Filter = "txt files (*.txt)|*.txt";
+                fileDialog.FilterIndex = 1;
+                fileDialog.RestoreDirectory = true;
 
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //String filePath = fileDialog.FileName;
+                    var fileStream = fileDialog.OpenFile();
+
+                    users.Clear();
+
+                    try
+                    {
+                        using (StreamReader fileReader = new StreamReader(fileStream))
+                        {
+                            string line;
+                            DataRow newRow;
+
+                            WriteLog("Đang import data...");
+                            int lineIndex = 0;
+                            while ((line = fileReader.ReadLine()) != null)
+                            {
+                                lineIndex++;
+                                string[] lineSplited = line.Split('|');
+
+                                string uid = "";
+                                string cookie = "";
+
+                                if (lineSplited.Length == 2)
+                                {
+                                    uid = lineSplited[0];
+                                    cookie = lineSplited[1];
+                                    newRow = users.NewRow();
+                                    newRow["UID"] = uid;
+                                    newRow["Cookie"] = cookie;
+                                    users.Rows.Add(newRow);
+                                }
+                                else
+                                {
+                                    WriteLog($"Lỗi khi import tại row: {lineIndex}");
+                                }
+
+                            }
+                            WriteLog("Đã import data xong.");
+                            //usersTotalNum = users.Rows.Count;
+                            //UserTableInfo.Text = $"(Tổng {usersTotalNum} hàng, đã chọn {usersSelectedNum})";
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        WriteLog($"Lỗi: {ex.Message}");
+                    }
+                }
+            }
         }
 
         private void importToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            using (OpenFileDialog fileDialog = new OpenFileDialog())
+            {
+                fileDialog.InitialDirectory = "c:\\";
+                fileDialog.Filter = "txt files (*.txt)|*.txt";
+                fileDialog.FilterIndex = 1;
+                fileDialog.RestoreDirectory = true;
 
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //String filePath = fileDialog.FileName;
+                    var fileStream = fileDialog.OpenFile();
+
+                    users.Clear();
+
+                    try
+                    {
+                        using (StreamReader fileReader = new StreamReader(fileStream))
+                        {
+                            string line;
+                            DataRow newRow;
+
+                            WriteLog("Đang import data...");
+                            int lineIndex = 0;
+                            while ((line = fileReader.ReadLine()) != null)
+                            {
+                                lineIndex++;
+                                string[] lineSplited = line.Split('|');
+
+                                string username = "";
+                                string password = "";
+                                string uid = "";
+                                string createdDate = "";
+                                string cookie = "";
+                                string status = "";
+                                string proxy = "";
+                                string message = "";
+
+                                if (lineSplited.Length == 8)
+                                {
+                                    username = lineSplited[0];
+                                    password = lineSplited[1];
+                                    uid = lineSplited[2];
+                                    createdDate = lineSplited[3];
+                                    cookie = lineSplited[4];
+                                    status = lineSplited[5];
+                                    message = lineSplited[6];
+                                    proxy = lineSplited[7];
+                                    newRow = users.NewRow();
+                                    newRow["UserName"] = username;
+                                    newRow["PassWord"] = password;
+                                    newRow["UID"] = uid;
+                                    newRow["CreatedDate"] = createdDate;
+                                    newRow["Cookie"] = cookie;
+                                    newRow["Status"] = status;
+                                    newRow["Message"] = message;
+                                    newRow["Proxy"] = proxy;
+
+                                    users.Rows.Add(newRow);
+                                }
+                                else
+                                {
+                                    WriteLog($"Lỗi khi import tại row: {lineIndex}");
+                                }
+
+                            }
+                            WriteLog("Đã import data xong.");
+                            //usersTotalNum = users.Rows.Count;
+                            //UserTableInfo.Text = $"(Tổng {usersTotalNum} hàng, đã chọn {usersSelectedNum})";
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        WriteLog($"Lỗi: {ex.Message}");
+                    }
+                }
+            }
         }
     }
 }
